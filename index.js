@@ -1,4 +1,17 @@
 const TelegramApi = require('node-telegram-bot-api');
+var http = require('http'); // 1 - Import Node.js core module
+
+const server = http.createServer(function (req, res) {   // 2 - creating server
+    res.writeHead(200, { 'Content-Type': 'text/html' }); 
+        
+    // set response content    
+    res.write('<html><body><p>This is home Page.</p></body></html>');
+    res.end();
+    //handle incomming requests here..
+
+});
+
+server.listen(process.env.PORT || 3000); 
 
 const token = '6880047259:AAF9v-A2O42qZMuJ9gN9pAQNp_KfZFX9ejs'
 const bot = new TelegramApi(token, {polling:true})
