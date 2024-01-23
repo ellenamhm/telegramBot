@@ -7,13 +7,13 @@ const app = express()
 app.get('/', function(request, response) {
     console.log('GET /')
     response.writeHead(200, {'Content-Type': 'text/html'})
-    response.end('<html><body><p>This is home Page.</p></body></html>')
+    response.end('<html><body><p>This is new home Page.</p></body></html>')
 })
 
 app.post('/trello-webhook-test1', (req, res) => {
     console.log('POST /trello-webhook-test1')
     console.log(req.body)
-    res.json('ok');
+    res.json({ status: 'ok' });
 });
 
 app.listen(process.env.PORT || 3000); 
