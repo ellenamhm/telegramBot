@@ -5,10 +5,14 @@ var http = require('http'); // 1 - Import Node.js core module
 
 const server = http.createServer(function (req, res) {   // 2 - creating server
     res.writeHead(200, { 'Content-Type': 'text/html' }); 
+    console.log(`on request handler: ${req && req.url}`);
+    // if (req && req.url === '/trello-webhook') {
         
-    // set response content    
+    // } else {
+        // set response content    
     res.write('<html><body><p>This is home Page.</p></body></html>');
-    res.end();
+    res.end();        
+    // }
     //handle incomming requests here..
 
 });
@@ -31,34 +35,50 @@ const buttonAdd = {
     })
 }
 
-
 const  start = async () =>{
-
-    try {
-        await sequelize.authenticate();
-        await sequelize.sync();
-        console.log('Connection has been established successfully.');
-    } catch (error) {
-        console.error('Unable to connect to the database:', error);
-    }
-
+    await sequelize.authenticate();
+    await sequelize.sync();
+    console.log('Connection has been established successfully.');
 
     bot.setMyCommands([
         {command: '/start', description: 'hello start'},
         {command: '/info', description: 'hello info'},
     ])
+
     bot.on('message', async msg =>{
         const text = msg.text;
         const chatId = msg.chat.id;
-        await UserModel.create({chatId})
-        if(text == '/start'){
-            return bot.sendMessage(chatId, "welcome " + msg.from.first_name , buttonAdd)
+        const fromId = msg.from.id;
+        const nameUser = `${msg.from.first_name} ${msg.from.last_name}`;
+
+        let userDb = await UserModel.findOne({
+            where: {
+                fromId: String(fromId)
+            }
+        })
+        
+        console.log('user', userDb);
+        // console.log('fromId',fromId);
+        const isNewUser = userDb === null;
+        if (isNewUser) {
+            userDb = await UserModel.create({fromId, nameUser});
         }
-        if(text == '/info'){
-            const user = await UserModel.findOne({chatId})
-            await bot.sendMessage(chatId, `welcome ${msg.from.first_name}` )
+
+        switch (text) {
+            case '/start':
+                if (isNewUser) {
+                    await bot.sendMessage(chatId, `Welcome ${msg.from.first_name }`, buttonAdd);
+                } else {
+                    await bot.sendMessage(chatId, `Welcome again ${msg.from.first_name}`, buttonAdd);
+                }
+                break;
+            case '/info':
+                await bot.sendMessage(chatId, `Info welcome ${nameUser}` );
+                break;
+            default: 
+                await bot.sendMessage(chatId, "I don't understand");
+                break;
         }
-        return bot.sendMessage(chatId, 'i not inderstend')
     })
 
     bot.on('callback_query', async msg => {
@@ -67,11 +87,10 @@ const  start = async () =>{
         console.log(data);
 
         if (data === '/adduser') {
-            return bot.sendMessage(chatId, data )
+            return bot.sendMessage(chatId, '/info' )
         }
-    
-        // await user.save();
     })
     
 }
-start()
+
+start().catch((error) => console.error('Unable to connect to the database:', error))
