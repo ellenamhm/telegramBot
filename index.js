@@ -1,27 +1,30 @@
-const TelegramApi = require('node-telegram-bot-api');
 require('dotenv').config();
+const TelegramApi = require('node-telegram-bot-api');
+const express = require('express')
 
-var http = require('http'); // 1 - Import Node.js core module
+const app = express()
 
-const server = http.createServer(function (req, res) {   // 2 - creating server
-    res.writeHead(200, { 'Content-Type': 'text/html' }); 
-    console.log(`on request handler: ${req && req.url}`);
-    // if (req && req.url === '/trello-webhook') {
-        
-    // } else {
-        // set response content    
-    res.write('<html><body><p>This is home Page.</p></body></html>');
-    res.end();        
-    // }
-    //handle incomming requests here..
+app.get('/', function(request, response) {
+    console.log('GET /')
+    response.writeHead(200, {'Content-Type': 'text/html'})
+    response.end('<html><body><p>This is home Page.</p></body></html>')
+})
 
+app.post('/trello-webhook-test1', (req, res) => {
+    console.log('POST /trello-webhook-test1')
+    console.log(req.body)
+    res.json('ok');
 });
 
-server.listen(process.env.PORT || 3000); 
+app.listen(process.env.PORT || 3000); 
 
 
 const sequelize = require('./db');
 const UserModel = require('./models');
+
+const webhookHandler = async () => {
+
+}
 
 
 const token = process.env.TELEGRAMID
@@ -35,7 +38,7 @@ const buttonAdd = {
     })
 }
 
-const  start = async () =>{
+const start = async () =>{
     await sequelize.authenticate();
     await sequelize.sync();
     console.log('Connection has been established successfully.');
@@ -57,8 +60,6 @@ const  start = async () =>{
             }
         })
         
-        console.log('user', userDb);
-        // console.log('fromId',fromId);
         const isNewUser = userDb === null;
         if (isNewUser) {
             userDb = await UserModel.create({fromId, nameUser});
